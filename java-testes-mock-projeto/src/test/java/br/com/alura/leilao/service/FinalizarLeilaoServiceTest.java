@@ -5,9 +5,12 @@ import br.com.alura.leilao.model.Lance;
 import br.com.alura.leilao.model.Leilao;
 import br.com.alura.leilao.model.Usuario;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -16,19 +19,20 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
+@DisplayName("Testes para o service de finalização de leilões")
 class FinalizarLeilaoServiceTest {
     @Mock
     private LeilaoDao leilaoDaoMock;
 
     @Mock
     private EnviadorDeEmails enviadorDeEmailsMock;
-//    @InjectMocks
+
+    @InjectMocks
     private FinalizarLeilaoService finalizarLeilaoService;
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.initMocks(this);
-        this.finalizarLeilaoService = new FinalizarLeilaoService(leilaoDaoMock, enviadorDeEmailsMock);
     }
 
     @Test
