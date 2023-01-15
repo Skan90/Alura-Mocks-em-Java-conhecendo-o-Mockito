@@ -16,11 +16,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.*;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class GeradorDePagamentoTest {
@@ -31,24 +30,79 @@ class GeradorDePagamentoTest {
     @Captor
     private ArgumentCaptor<Pagamento> captor;
 
+    @Mock
+    private Clock clock;
+
     @InjectMocks
     private GeradorDePagamento geradorDePagamento;
 
-    @BeforeEach
-    void setUp() {
-    }
-
     @Test
-    void deveriaGerarPagamentoParaVencedorDoLeilao() {
+    void deveriaGerarPagamentoParaVencedorDoLeilaoDiaDeSemana() {
         Leilao leilao = leilaoFake();
         Lance lanceVencedor = leilao.getLanceVencedor();
+        LocalDate data = LocalDate.of(2023, 1, 11);
+
+        Instant instant = data.atStartOfDay(ZoneId.systemDefault()).toInstant();
+
+        when(clock.instant()).thenReturn(instant);
+        when(clock.getZone()).thenReturn(ZoneId.systemDefault());
+
         geradorDePagamento.gerarPagamento(lanceVencedor);
 
         verify(pagamentoDaoMock).salvar(captor.capture());
 
         Pagamento pagamento = captor.getValue();
 
-        assertEquals(LocalDate.now().plusDays(1), pagamento.getVencimento());
+        assertEquals(LocalDate.of(2023, 1, 11).plusDays(1), pagamento.getVencimento());
+        assertEquals(lanceVencedor.getValor(), pagamento.getValor());
+        assertFalse(pagamento.getPago());
+        assertEquals(lanceVencedor.getUsuario(), pagamento.getUsuario());
+        assertEquals(leilao, pagamento.getLeilao());
+
+    }
+
+    @Test
+    void deveriaGerarPagamentoParaVencedorDoLeilaoQuandoProximoDiaUtilForSabado() {
+        Leilao leilao = leilaoFake();
+        Lance lanceVencedor = leilao.getLanceVencedor();
+        LocalDate data = LocalDate.of(2023, 1, 13);
+
+        Instant instant = data.atStartOfDay(ZoneId.systemDefault()).toInstant();
+
+        when(clock.instant()).thenReturn(instant);
+        when(clock.getZone()).thenReturn(ZoneId.systemDefault());
+
+        geradorDePagamento.gerarPagamento(lanceVencedor);
+
+        verify(pagamentoDaoMock).salvar(captor.capture());
+
+        Pagamento pagamento = captor.getValue();
+
+        assertEquals(LocalDate.of(2023, 1, 13).plusDays(3), pagamento.getVencimento());
+        assertEquals(lanceVencedor.getValor(), pagamento.getValor());
+        assertFalse(pagamento.getPago());
+        assertEquals(lanceVencedor.getUsuario(), pagamento.getUsuario());
+        assertEquals(leilao, pagamento.getLeilao());
+
+    }
+    @Test
+    void deveriaGerarPagamentoParaVencedorDoLeilaoQuandoProximoDiaUtilForDomingo() {
+        Leilao leilao = leilaoFake();
+        Lance lanceVencedor = leilao.getLanceVencedor();
+        LocalDate data = LocalDate.of(2023, 1, 14);
+
+        Instant instant = data.atStartOfDay(ZoneId.systemDefault()).toInstant();
+
+        when(clock.instant()).thenReturn(instant);
+        when(clock.getZone()).thenReturn(ZoneId.systemDefault());
+
+        geradorDePagamento.gerarPagamento(lanceVencedor);
+
+        verify(pagamentoDaoMock).salvar(captor.capture());
+
+        Pagamento pagamento = captor.getValue();
+
+        assertEquals(LocalDate.of(2023, 1, 14).plusDays(2), pagamento.getVencimento());
         assertEquals(lanceVencedor.getValor(), pagamento.getValor());
         assertFalse(pagamento.getPago());
         assertEquals(lanceVencedor.getUsuario(), pagamento.getUsuario());

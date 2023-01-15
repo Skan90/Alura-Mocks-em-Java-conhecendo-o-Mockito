@@ -31,9 +31,6 @@ class FinalizarLeilaoServiceTest {
     @InjectMocks
     private FinalizarLeilaoService finalizarLeilaoService;
 
-    @BeforeEach
-    void setUp() {
-    }
 
     @Test
     void deveriaFinalizarLeiloesExpirados() {
